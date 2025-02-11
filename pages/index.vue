@@ -1,10 +1,5 @@
 <template>
-  <div>
-    <h1>Welkom bij mijn Nuxt 3-app! 🎉</h1>
+  <div class="container mx-auto">
     <BierLijst />
   </div>
 </template>
-
-<script setup>
-import BierLijst from '~/components/BierLijst.vue';
-</script>

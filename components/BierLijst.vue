@@ -12,7 +12,7 @@ const handleDislike = (beer) => {
 
 <template>
     <div>
-        <h2 class="text-2xl font-bold mb-4">
+        <h2 class="flex text-2xl font-bold mb-4 w-full justify-center">
             Bier Lijst 🍻
         </h2>
         <ul>
@@ -23,7 +23,7 @@ const handleDislike = (beer) => {
             >
                 <div class="flex justify-between w-full items-center">
                     <span>
-                        {{ beer.name }}
+                        {{ beer.name }} - {{ beer.brewer }}
                     </span>
                     <div class="flex items-center space-x-2">
                         <button

@@ -14,11 +14,10 @@ export default defineEventHandler(async (event) => {
 
     // Databaseverbinding opzetten
     const connection = await mysql.createConnection({
-        host: 'localhost',
-        port: 8889,
-        user: 'root',
-        password: 'root',
-        database: 'BierLijst'
+        host: process.env.MYSQL_HOST,
+        user: process.env.MYSQL_USER,
+        password: process.env.MYSQL_PASSWORD,
+        database: process.env.MYSQL_DATABASE
     });
 
     switch (method) {

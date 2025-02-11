@@ -1,6 +1,15 @@
 <script setup>
 const { data: beers } = await useAsyncData('beers', () => $fetch('/api/connection'));
 
+const fetchChanges = async () => {
+  const request = await fetch("/api/connection")
+  beers.value = await request.json();
+  if (!request.ok) {
+    throw new Error("Fetch error");
+  }
+  return true;
+}
+
 const handleLikeChange = async (bierID, type) => {
   const request = await fetch(`/api/connection/${bierID}`, {
     method: "PUT",
@@ -14,7 +23,7 @@ const handleLikeChange = async (bierID, type) => {
   if (!request.ok) {
     throw new Error("Fetch failed")
   }
-  return true;
+  return await fetchChanges();
 }
 
 </script>

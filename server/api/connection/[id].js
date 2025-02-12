@@ -1,7 +1,7 @@
 import mysql from 'mysql2/promise';
 
 export default defineEventHandler(async (event) => {
-    const { id } = event.context.params;  // Haal de ID op uit de URL.
+    const {id} = event.context.params;  // Haal de ID op uit de URL.
     const method = event.node.req.method; // Haal de HTTP-methode op (GET, PUT, enz.)
 
     // Haal de body op voor PUT/POST-aanroepen
@@ -24,7 +24,7 @@ export default defineEventHandler(async (event) => {
     switch (method) {
         case 'PUT':
             if (!id) {
-                return { error: 'Geen ID opgegeven voor de PUT-aanroep' };
+                return {error: 'Geen ID opgegeven voor de PUT-aanroep'};
             }
 
             // Haal het bier op basis van de ID
@@ -40,7 +40,7 @@ export default defineEventHandler(async (event) => {
                 } else if (body === 'Dislike') {
                     newLikes -= 1; // Verlaag de like_count
                 } else {
-                    return { error: 'Ongeldig type. Gebruik "like" of "dislike".' };
+                    return {error: 'Ongeldig type. Gebruik "like" of "dislike".'};
                 }
 
                 console.log("Nieuwe like_count:", newLikes);
@@ -52,14 +52,14 @@ export default defineEventHandler(async (event) => {
                 );
 
                 await connection.end();
-                return { message: `Je hebt het biertje met de id ${id} geliket of gedisliket, de likes bedragen nu ${newLikes}.` };
+                return {message: `Je hebt het biertje met de id ${id} geliket of gedisliket, de likes bedragen nu ${newLikes}.`};
             } else {
                 await connection.end();
-                return { error: `Bier met id ${id} niet gevonden.` };
+                return {error: `Bier met id ${id} niet gevonden.`};
             }
 
         default:
-            return { error: 'Methode niet ondersteund.' };
+            return {error: 'Methode niet ondersteund.'};
     }
     return true;
 });

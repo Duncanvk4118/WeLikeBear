@@ -20,6 +20,6 @@ export default defineEventHandler(async (event) => {
             return rows;
         default:
             await connection.end();
-            return { error: 'Methode niet ondersteund.' };
+            return {error: 'Methode niet ondersteund.'};
     }
 });

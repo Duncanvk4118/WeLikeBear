@@ -27,6 +27,25 @@ export default defineEventHandler(async (event) => {
                 return { error: 'Geen ID opgegeven voor de PUT-aanroep' };
             }
 
+            // Checkt of er al een like / dislike bestaat
+            const [likeRow] = await connection.execute('SELECT * FROM likes WHERE bier_id = ? AND cookie_id = ?', [id, body.cookieId])
+
+            if (likeRow.length === 0) {
+                const [createLike] = await connection.execute('INSERT INTO likes (bier_id, cookie_id, dislike) VALUES (?,?,?)', [id, body.cookieId, false])
+            }
+
+            if (likeRow.length > 0) {
+                if (likeRow[0].dislike && body.type === "Like") {
+                    const [updateLike] = connection.execute('UPDATE likes SET dislike = ? WHERE bier_id = ? AND cookie_id = ?', [false, id, body.cookieId])
+                    console.log(updateLike)
+                } else if (!likeRow[0].dislike && body.type === "Dislike") {
+                    const [updateLike] = connection.execute('UPDATE likes SET dislike = ? WHERE bier_id = ? AND cookie_id = ?', [true, id, body.cookieId])
+                    console.log(updateLike)
+                } else {
+                    return false;
+                }
+            }
+
             // Haal het bier op basis van de ID
             const [row] = await connection.execute('SELECT * FROM beers WHERE id = ?', [id]);
             console.log("Oude like_count:", row[0]?.like_count);
@@ -35,10 +54,10 @@ export default defineEventHandler(async (event) => {
                 let newLikes = row[0].like_count;
 
                 // Controleer het type en pas de like_count aan
-                if (body === 'Like') {
-                    newLikes += 1; // Verhoog de like_count
+                if (body.type === 'Like') {
+                    newLikes ++; // Verhoog de like_count
                 } else if (body === 'Dislike') {
-                    newLikes -= 1; // Verlaag de like_count
+                    newLikes.type --; // Verlaag de like_count
                 } else {
                     return { error: 'Ongeldig type. Gebruik "like" of "dislike".' };
                 }

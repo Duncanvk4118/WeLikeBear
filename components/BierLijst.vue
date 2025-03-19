@@ -1,5 +1,6 @@
 <script setup>
 const page = ref('Main');
+const userRatings = ref([]);
 
 const { data: beers } = await useAsyncData('beers', () => $fetch('/api/connection'));
 const { data: ratings } = await useAsyncData("ratings", () => $fetch("/api/ratings"));
@@ -15,6 +16,54 @@ const getAverageRating = (beerId) => {
 
   return Math.round(average * 10) / 10;
 };
+
+const getUserRating = (beerId) => {
+  const ratingEntry = userRatings.value.find(r => r.bier_id === beerId.toString());
+  return ratingEntry ? ratingEntry.rating : 0;
+};
+
+const getLikes = async (user_id) => {
+  const request = await fetch(`/api/rate?user_id=${user_id}`, {
+    method: "GET",
+  });
+  if (!request.ok) {
+    return console.error("Like Error");
+  }
+  const data = await request.json();
+  userRatings.value = data;
+
+  // Na het ophalen van de likes, herfetch de ratings data
+  await fetchRatings();
+};
+
+const fetchRatings = async () => {
+  // Herhaal de fetch om de ratings opnieuw op te halen
+  const { data } = await useAsyncData("ratings", () => $fetch("/api/ratings"));
+  ratings.value = data;
+};
+
+
+getLikes(88);
+
+const rateBeer = async (rating, bier_id, user_id) => {
+  const request = await fetch('/api/rate', {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      rating,
+      bier_id,
+      user_id
+    })
+  })
+  if (!request.ok) {
+    return console.error("Like Error");
+  }
+  const data = await request.json();
+  console.log(data);
+  // Refetch data
+  getLikes(88);
+  getAverageRating(bier_id);
+}
 </script>
 
 <template>
@@ -119,15 +168,16 @@ const getAverageRating = (beerId) => {
 
 
                   <div class="flex items-center">
-<!--                    <svg class="w-4 h-4 text-yellow-300" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 22 20">-->
-<!--                      <path d="M20.924 7.625a1.523 1.523 0 0 0-1.238-1.044l-5.051-.734-2.259-4.577a1.534 1.534 0 0 0-2.752 0L7.365 5.847l-5.051.734A1.535 1.535 0 0 0 1.463 9.2l3.656 3.563-.863 5.031a1.532 1.532 0 0 0 2.226 1.616L11 17.033l4.518 2.375a1.534 1.534 0 0 0 2.226-1.617l-.863-5.03L20.537 9.2a1.523 1.523 0 0 0 .387-1.575Z"/>-->
-<!--                    </svg>-->
-
-                    <button v-for="index in 5" :key="'Star-' + index" class="flex items-center justify-center p-1 text-gray-500 transition-colors duration-200 rounded-lg dark:text-gray-300 hover:bg-gray-100 active:bg-gray-200">
-                      <svg class="w-4 h-4 text-gray-300 dark:text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 22 20">
+                    <button v-for="index in 5"
+                            :key="'Star-' + index"
+                            @click="rateBeer(index, beer.id, 88)"
+                            class="flex items-center justify-center p-1 transition-colors duration-200 rounded-lg hover:bg-gray-100 active:bg-gray-200"
+                            :class="{'text-yellow-400 hover:bg-yellow-100 active:bg-yellow-200': index <= getUserRating(beer.id), 'text-gray-300': index > getUserRating(beer.id)}">
+                      <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 22 20">
                         <path d="M20.924 7.625a1.523 1.523 0 0 0-1.238-1.044l-5.051-.734-2.259-4.577a1.534 1.534 0 0 0-2.752 0L7.365 5.847l-5.051.734A1.535 1.535 0 0 0 1.463 9.2l3.656 3.563-.863 5.031a1.532 1.532 0 0 0 2.226 1.616L11 17.033l4.518 2.375a1.534 1.534 0 0 0 2.226-1.617l-.863-5.03L20.537 9.2a1.523 1.523 0 0 0 .387-1.575Z"/>
                       </svg>
                     </button>
+
 
                     <button class="hover:bg-gray-100 active:bg-gray-200 transition-all duration-200 rounded-full p-2 ml-10">
                       <svg class="w-4 h-4 text-gray-700 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">

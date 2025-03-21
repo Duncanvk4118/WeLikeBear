@@ -204,7 +204,6 @@ const rateBeer = async (rating, bier_id, user_id) => {
 
     <TopRatings
         v-if="page === 'Top10'"
-        class="mt-10"
     />
 
     <div class="mt-6 sm:flex sm:items-center sm:justify-between ">

@@ -1,7 +1,9 @@
 import mysql from 'mysql2/promise';
 
 export default defineEventHandler(async (event) => {
-    // Verbinding request maken
+    const method = event.node.req.method;
+
+    // Maak de databaseverbinding
     const connection = await mysql.createConnection({
         host: process.env.MYSQL_HOST,
         port: process.env.MYSQL_PORT,
@@ -10,12 +12,14 @@ export default defineEventHandler(async (event) => {
         database: process.env.MYSQL_DATABASE
     });
 
-    // SQL syntax
-    const [rows] = await connection.execute('SELECT * FROM beers');
-
-    // Verbreekt de connectie
-    await connection.end();
-
-    // Geeft het SQL resultaat terug
-    return rows;
+    switch (method) {
+        case 'GET':
+            // Haal de lijst van alle bieren op
+            const [rows] = await connection.execute('SELECT * FROM beers');
+            await connection.end();
+            return rows;
+        default:
+            await connection.end();
+            return { error: 'Methode niet ondersteund.' };
+    }
 });

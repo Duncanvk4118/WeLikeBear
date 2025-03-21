@@ -1,8 +1,9 @@
 import mysql from 'mysql2/promise';
 import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 
 export default defineEventHandler(async (event) => {
-    const { name, email, password } = readBody(event);
+    const { email, password, username } = await readBody(event);
 
     // Maak de databaseverbinding
     const connection = await mysql.createConnection({
@@ -14,29 +15,37 @@ export default defineEventHandler(async (event) => {
     });
 
     try {
-        // Controleer of de gebruiker al bestaat
+        // Check if the email already exists in the database
         const [rows] = await connection.execute("SELECT * FROM users WHERE email = ?", [email]);
 
         if (rows.length > 0) {
-            // Als de gebruiker al bestaat
-            return { statusCode: 400, body: "User already exists" };
+            return { statusCode: 409, body: { message: "Email is already in use" } };
         }
 
-        // Wachtwoord hashen
+        // Hash the password before saving it to the database
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Nieuwe gebruiker aanmaken
-        await connection.execute(
-            "INSERT INTO users (name, email, password) VALUES (?, ?, ?)",
-            [name, email, hashedPassword]
+        // Insert user
+        const [result] = await connection.execute(
+            "INSERT INTO users (email, password, name) VALUES (?, ?, ?)",
+            [email, hashedPassword, username]
         );
 
-        // Sluit de verbinding
+        // Create token
+        const token = jwt.sign({ userId: result.insertId }, process.env.JWT_SECRET, { expiresIn: '1h' });
+
         await connection.end();
 
-        return { statusCode: 200, body: "User created successfully" };
+        return {
+            statusCode: 201,
+            body: {
+                message: "Registration successful",
+                token: token
+            }
+        };
+
     } catch (error) {
         console.error(error);
-        return { statusCode: 500, body: "Error creating user" };
+        return { statusCode: 500, body: { message: "Error during registration" } };
     }
 });

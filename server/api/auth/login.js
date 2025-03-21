@@ -1,8 +1,9 @@
 import mysql from 'mysql2/promise';
 import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 
 export default defineEventHandler(async (event) => {
-    const { email, password } = readBody(event);
+    const { email, password } = await readBody(event);
 
     // Maak de databaseverbinding
     const connection = await mysql.createConnection({
@@ -14,30 +15,24 @@ export default defineEventHandler(async (event) => {
     });
 
     try {
-        // Haal de gebruiker op uit de database op basis van het e-mailadres
         const [rows] = await connection.execute("SELECT * FROM users WHERE email = ?", [email]);
 
         if (rows.length === 0) {
-            // Gebruiker bestaat niet
             return { statusCode: 404, body: "User not found" };
         }
 
-        const user = rows[0]; // De eerste (en enige) rij die overeenkomt
+        const user = rows[0];
 
-        // Vergelijk het ingevoerde wachtwoord met het gehashte wachtwoord
+        // Compare password
         const isPasswordCorrect = await bcrypt.compare(password, user.password);
 
         if (!isPasswordCorrect) {
-            // Wachtwoord komt niet overeen
             return { statusCode: 401, body: "Invalid credentials" };
         }
 
-        // Login is succesvol, hier kun je een sessie of een token aanmaken
-        // Bijvoorbeeld een JWT token:
-        const jwt = require('jsonwebtoken');
+        // Create tooken
         const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
-        // Sluit de verbinding
         await connection.end();
 
         return {

@@ -20,7 +20,7 @@ export default {
   },
   methods: {
     async submitLogin(e) {
-      e.preventDefault(); // Niet strikt nodig met @submit.prevent, maar kan geen kwaad.
+      e.preventDefault();
 
       const formData = {
         email: this.email,
@@ -28,7 +28,6 @@ export default {
       };
 
       try {
-        const router = useRouter();
         const request = await fetch("/api/auth/login", {
           method: "POST",
           headers: {
@@ -43,11 +42,12 @@ export default {
         }
 
         const data = await request.json();
-        if (data) {
-          Cookies.set('token', data.body.token, {expires: 1/24});
-          router.push('/');
+        if (data && data.body.token) {
+          Cookies.set('token', data.body.token, { expires: 1 / 24 });
+          console.log("Login successful:", data);
+
+          this.$router.push('/');
         }
-        console.log("Login successful:", data);
       } catch (error) {
         console.error("Error:", error.message);
       }

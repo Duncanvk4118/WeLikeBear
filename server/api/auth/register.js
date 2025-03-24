@@ -15,14 +15,14 @@ export default defineEventHandler(async (event) => {
     });
 
     try {
-        // Check if the email already exists in the database
+        // Check if the email
         const [rows] = await connection.execute("SELECT * FROM users WHERE email = ?", [email]);
 
         if (rows.length > 0) {
             return { statusCode: 409, body: { message: "Email is already in use" } };
         }
 
-        // Hash the password before saving it to the database
+        // Hash the password
         const hashedPassword = await bcrypt.hash(password, 10);
 
         // Insert user

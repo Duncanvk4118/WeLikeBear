@@ -222,6 +222,10 @@ const rateBeer = async (rating, bier_id) => {
       </div>
     </div>
 
+    <TopRatings
+        v-if="page === 'Top10'"
+    />
+
     <div class="mt-6 sm:flex sm:items-center sm:justify-between ">
       <div class="text-sm text-gray-500 dark:text-gray-400">
         Page <span class="font-medium text-gray-700 dark:text-gray-100">1 of 10</span>
